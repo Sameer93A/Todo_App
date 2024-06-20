@@ -15,15 +15,19 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const zod_1 = require("zod");
 const client_1 = require("@prisma/client");
+const middleware_1 = require("./middleware");
 const prisma = new client_1.PrismaClient();
 const app = (0, express_1.default)();
+app.use(express_1.default.json());
 const signupBody = zod_1.z.object({
     username: zod_1.z.string(),
     firstName: zod_1.z.string(),
     lastName: zod_1.z.string(),
 });
 app.post("/signup", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    console.log("Received request body: ", req.body);
     const { success } = signupBody.safeParse(req.body);
+    console.log("Parse result:", success);
     if (!success) {
         return res.status(411).json({
             msg: "inpute are not correct",
@@ -38,14 +42,45 @@ app.post("/signup", (req, res) => __awaiter(void 0, void 0, void 0, function* ()
     });
     if (!createUser) {
         return res.status(411).json({
-            msg: "Error while create a data",
+            msg: "Error while creating a data",
         });
     }
     res.status(200).json({
         msg: "user created successfully",
     });
 }));
-app.get("todos", (req, res) => {
-    res.send("hello how are you");
-});
+app.post("/createTodo", middleware_1.authenticateMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const createTodo = yield prisma.todo.create({
+        data: {
+            title: req.body.title,
+            description: req.body.title,
+            userId: req.body.userId,
+        },
+    });
+    if (!createTodo) {
+        return res.status(411).json({
+            msg: "Error while create todo",
+        });
+    }
+    res.status(200).json({
+        msg: "Todo created successfully",
+    });
+}));
+app.get("/todos/:username", middleware_1.authenticateMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const todos = yield prisma.todo.findMany({
+        where: {
+            user: {
+                username: req.params.username,
+            },
+        },
+        select: {
+            user: true,
+            title: true,
+            description: true,
+        },
+    });
+    res.status(200).json({
+        todos,
+    });
+}));
 app.listen(3000);
