@@ -15,9 +15,7 @@ const signupBody = z.object({
 });
 
 app.post("/signup", async (req, res) => {
-  console.log("Received request body: ", req.body);
   const { success } = signupBody.safeParse(req.body);
-  console.log("Parse result:", success);
   if (!success) {
     return res.status(411).json({
       msg: "inpute are not correct",
@@ -58,11 +56,11 @@ app.post("/createTodo", authenticateMiddleware, async (req, res) => {
   });
 });
 
-app.get("/todos/:username", authenticateMiddleware, async (req, res) => {
+app.get("/todos/", authenticateMiddleware, async (req: any, res) => {
   const todos = await prisma.todo.findMany({
     where: {
       user: {
-        username: req.params.username,
+        username: req.user.username,
       },
     },
     select: {

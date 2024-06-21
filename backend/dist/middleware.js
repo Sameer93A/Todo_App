@@ -16,7 +16,7 @@ function authenticateMiddleware(req, res, next) {
     return __awaiter(this, void 0, void 0, function* () {
         const existingUser = yield prisma.user.findFirst({
             where: {
-                username: req.body.username,
+                username: req.headers["username"],
             },
         });
         if (!existingUser) {
@@ -24,6 +24,7 @@ function authenticateMiddleware(req, res, next) {
                 msg: "User doesn't exist",
             });
         }
+        req.user = existingUser;
         next();
     });
 }

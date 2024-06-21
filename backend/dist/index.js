@@ -25,9 +25,7 @@ const signupBody = zod_1.z.object({
     lastName: zod_1.z.string(),
 });
 app.post("/signup", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    console.log("Received request body: ", req.body);
     const { success } = signupBody.safeParse(req.body);
-    console.log("Parse result:", success);
     if (!success) {
         return res.status(411).json({
             msg: "inpute are not correct",
@@ -66,11 +64,11 @@ app.post("/createTodo", middleware_1.authenticateMiddleware, (req, res) => __awa
         msg: "Todo created successfully",
     });
 }));
-app.get("/todos/:username", middleware_1.authenticateMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+app.get("/todos/", middleware_1.authenticateMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const todos = yield prisma.todo.findMany({
         where: {
             user: {
-                username: req.params.username,
+                username: req.user.username,
             },
         },
         select: {

@@ -9,7 +9,7 @@ export async function authenticateMiddleware(
 ) {
   const existingUser = await prisma.user.findFirst({
     where: {
-      username: req.body.username,
+      username: req.headers["username"] as string,
     },
   });
   if (!existingUser) {
@@ -17,5 +17,6 @@ export async function authenticateMiddleware(
       msg: "User doesn't exist",
     });
   }
+  req.user = existingUser;
   next();
 }
